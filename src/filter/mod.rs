@@ -179,6 +179,11 @@ impl<'a> Filter<'a> {
         protein.peptides = filtered;
 
         let spec = protein.peptides.len() as u16;
+
+        if spec == 0 {
+            return None;
+        }
+
         let seq = protein
             .peptides
             .iter()

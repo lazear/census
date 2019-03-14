@@ -16,6 +16,32 @@ pub struct Protein<'s> {
     pub molecular_weight: u32,
     /// Raw signal intensity channels
     pub peptides: Vec<Peptide<'s>>,
+
+    pub channels: u8,
+}
+
+impl<'s> Protein<'s> {
+    /// Return the summed intensities for all peptides
+    pub fn total(&self) -> Vec<f64> {
+        let mut v = Vec::with_capacity(self.channels as usize);
+        for c in 0..self.channels {
+            let sum = self
+                .peptides
+                .iter()
+                .map(|pep| pep.values[c as usize])
+                .fold(0.0, |acc, x| acc + x);
+            v.push(sum);
+        }
+        v
+    }
+
+    /// Return a vector of normalized ratios, where the signal intensity
+    /// for each channel is divided by the sum of all channels
+    pub fn ratios(&self) -> Vec<f64> {
+        let values = self.total();
+        let total = values.iter().fold(0.0, |acc, &x| acc + x);
+        values.iter().map(|v| v / total).collect()
+    }
 }
 
 #[derive(PartialEq, PartialOrd, Clone, Debug)]

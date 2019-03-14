@@ -1,9 +1,5 @@
 //! Parse Census proteomics file
 //!
-//! Citation for census algorithm:
-//!
-//! Census 2: Isobaric labeling data analysis, Bioinformatics. 2014 Mar 28
-//! A quantitative analysis software tool for mass spectrometry.based proteomics. Sung Kyu Park, John D Venable, Tao Xu, John R Yates III, Nature Methods, 2008, 5, 319-322
 
 use super::*;
 
@@ -140,6 +136,7 @@ impl<'s> Parser<'s> {
             molecular_weight,
             description,
             peptides,
+            channels: self.channels,
         })
     }
 
