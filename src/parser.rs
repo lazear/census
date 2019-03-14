@@ -73,7 +73,7 @@ impl<'s> Parser<'s> {
             let mz = data
                 .next()
                 .ok_or_else(|| self.err(ErrorKind::EOF))?
-                .parse::<f64>()
+                .parse::<u32>()
                 .map_err(|_| self.err(ErrorKind::Conversion))?;
             // discard normalized data
             let _ = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?;

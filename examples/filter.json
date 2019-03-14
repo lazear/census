@@ -1,0 +1,15 @@
+{
+    "peptide_filters":
+        [
+            {
+                "ChannelIntensity": [1,1000]
+            },
+            {
+                "TotalIntensity": 5000
+            },
+            "Unique",
+            "Tryptic"
+            
+        ],
+    "protein_filters": []
+}

@@ -22,14 +22,10 @@ pub struct Protein<'s> {
 
 impl<'s> Protein<'s> {
     /// Return the summed intensities for all peptides
-    pub fn total(&self) -> Vec<f64> {
+    pub fn total(&self) -> Vec<u32> {
         let mut v = Vec::with_capacity(self.channels as usize);
         for c in 0..self.channels {
-            let sum = self
-                .peptides
-                .iter()
-                .map(|pep| pep.values[c as usize])
-                .fold(0.0, |acc, x| acc + x);
+            let sum = self.peptides.iter().map(|pep| pep.values[c as usize]).sum();
             v.push(sum);
         }
         v
@@ -39,8 +35,8 @@ impl<'s> Protein<'s> {
     /// for each channel is divided by the sum of all channels
     pub fn ratios(&self) -> Vec<f64> {
         let values = self.total();
-        let total = values.iter().fold(0.0, |acc, &x| acc + x);
-        values.iter().map(|v| v / total).collect()
+        let total = values.iter().sum::<u32>() as f64;
+        values.iter().map(|v| *v as f64 / total).collect()
     }
 }
 
@@ -50,7 +46,7 @@ pub struct Peptide<'s> {
     /// Peptide sequence
     pub sequence: &'s str,
     /// Raw isobaric ion intensity values
-    pub values: Vec<f64>,
+    pub values: Vec<u32>,
     /// Is this a unique peptide?
     pub unique: bool,
 }
@@ -66,8 +62,8 @@ impl<'s> Peptide<'s> {
     /// Return a vector of normalized ratios, where the signal intensity
     /// for each channel is divided by the sum of all channels
     pub fn ratios(&self) -> Vec<f64> {
-        let total = self.values.iter().fold(0.0, |acc, &x| acc + x);
-        self.values.iter().map(|v| v / total).collect()
+        let total: f64 = self.values.iter().sum::<u32>() as f64;
+        self.values.iter().map(|v| *v as f64 / total).collect()
     }
 
     /// Swap channels A and B, which are 0 indexed into the peptide values

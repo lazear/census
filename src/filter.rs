@@ -1,29 +1,30 @@
 //! Utilities for filtering datasets and proteins based on a set of composable
 //! rules
-//!
-//! ```ignore
-//! protein:
-//!     spectral_count: 10
-//! peptide:
-//!     exclude "C"
-//!     tryptic
-//!     intensity 5000
-//!     unique
-//!     channelcv 1, 6 10000.0
-//!
-//! ```
-//!
 use super::*;
+#[cfg(feature = "serialization")]
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-mod parse;
 
 /// Protein-level filter
+#[cfg(feature = "serialization")]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub enum ProteinFilter {
+    /// Pass through proteins that have spectral counts >= N
+    SpectralCounts(u16),
+    /// Pass through proteins that have sequence counts >= N
+    SequenceCounts(u16),
+    ExcludeReverse,
+}
+
+/// Protein-level filter
+#[cfg(not(feature = "serialization"))]
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub enum ProteinFilter {
     /// Pass through proteins that have spectral counts >= N
     SpectralCounts(u16),
     /// Pass through proteins that have sequence counts >= N
     SequenceCounts(u16),
+    ExcludeReverse,
 }
 
 /// Peptide-level filter
@@ -34,14 +35,15 @@ pub enum ProteinFilter {
 ///
 /// Peptide can also be filtered based on whether they have 2 tryptic ends,
 /// or if they are unique.
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[cfg(feature = "serialization")]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub enum PeptideFilter<'a> {
     /// Include only peptides that have a sequence matching the pattern
     SequenceMatch(&'a str),
     /// Exclude all peptides that have a sequence matching the pattern
     SequenceExclude(&'a str),
     /// Pass through peptides that have a total ion itensity >= N
-    TotalIntensity(f64),
+    TotalIntensity(u32),
 
     /// ChannelCV(channels, N)
     ///
@@ -53,7 +55,43 @@ pub enum PeptideFilter<'a> {
     ///
     /// Pass through peptides that have an ion intensity >= N
     /// in the specified channel
-    ChannelIntensity(usize, f64),
+    ChannelIntensity(usize, u32),
+
+    /// Pass through tryptic peptides
+    Tryptic,
+    /// Include only unique peptides
+    Unique,
+}
+
+/// Peptide-level filter
+///
+/// Filter individual peptides within a protein based on sequence mactches,
+/// total intensities, coefficient of variance between channels, or intensity
+/// values on specified channels.
+///
+/// Peptide can also be filtered based on whether they have 2 tryptic ends,
+/// or if they are unique.
+#[cfg(not(feature = "serialization"))]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum PeptideFilter<'a> {
+    /// Include only peptides that have a sequence matching the pattern
+    SequenceMatch(&'a str),
+    /// Exclude all peptides that have a sequence matching the pattern
+    SequenceExclude(&'a str),
+    /// Pass through peptides that have a total ion itensity >= N
+    TotalIntensity(u32),
+
+    /// ChannelCV(channels, N)
+    ///
+    /// Pass peptide if the coeff. of variance is < N between
+    /// the specified channels
+    ChannelCV(Vec<usize>, f64),
+
+    /// ChannelIntensity(channel, cutoff)
+    ///
+    /// Pass through peptides that have an ion intensity >= N
+    /// in the specified channel
+    ChannelIntensity(usize, u32),
 
     /// Pass through tryptic peptides
     Tryptic,
@@ -62,13 +100,24 @@ pub enum PeptideFilter<'a> {
 }
 
 /// Provides filtering functionality on datasets and proteins
+#[cfg(not(feature = "serialization"))]
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Filter<'a> {
     peptide_filters: Vec<PeptideFilter<'a>>,
     protein_filters: Vec<ProteinFilter>,
 }
 
+/// Provides filtering functionality on datasets and proteins
+#[cfg(feature = "serialization")]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct Filter<'a> {
+    #[serde(borrow)]
+    peptide_filters: Vec<PeptideFilter<'a>>,
+    protein_filters: Vec<ProteinFilter>,
+}
+
 impl<'a> Default for Filter<'a> {
+    /// Construct a filter with no rules
     fn default() -> Self {
         Filter {
             peptide_filters: Vec::new(),
@@ -78,16 +127,23 @@ impl<'a> Default for Filter<'a> {
 }
 
 impl<'a> Filter<'a> {
+    /// Add a new `ProteinFilter` to the `Filter` object.
+    ///
+    /// This follows the Builder pattern
     pub fn add_protein_filter(mut self, filter: ProteinFilter) -> Self {
         self.protein_filters.push(filter);
         self
     }
 
+    /// Add a new `PeptideFilter` to the `Filter` object.
+    ///
+    /// This follows the Builder pattern
     pub fn add_peptide_filter(mut self, filter: PeptideFilter<'a>) -> Self {
         self.peptide_filters.push(filter);
         self
     }
 
+    /// Return a new `Dataset` that only contains filtered `Protein`'s
     pub fn filter_dataset<'s>(&self, dataset: Dataset<'s>) -> Dataset<'s> {
         Dataset {
             channels: dataset.channels,
@@ -99,6 +155,12 @@ impl<'a> Filter<'a> {
         }
     }
 
+    /// Filter a `Protein`, returning `Some` if it passes any
+    /// `ProteinFilter`s that need to be applied or `None` if the protein
+    /// fails a given `ProteinFilter`.
+    ///
+    /// The peptides associated with the returned `Protein` object aree those
+    /// that passed any given `PeptideFilter`s.
     pub fn filter_protein<'s>(&self, mut protein: Protein<'s>) -> Option<Protein<'s>> {
         // First run through any protein level filters
         for filter in &self.protein_filters {
@@ -110,6 +172,11 @@ impl<'a> Filter<'a> {
                 }
                 ProteinFilter::SpectralCounts(n) => {
                     if protein.spectral_count < *n {
+                        return None;
+                    }
+                }
+                ProteinFilter::ExcludeReverse => {
+                    if protein.accession.contains("Reverse") {
                         return None;
                     }
                 }
@@ -135,7 +202,7 @@ impl<'a> Filter<'a> {
                         }
                     }
                     PeptideFilter::TotalIntensity(n) => {
-                        if peptide.values.iter().fold(0.0, |acc, &x| acc + x) < *n {
+                        if peptide.values.iter().sum::<u32>() < *n {
                             pass = false;
                         }
                     }
@@ -175,15 +242,14 @@ impl<'a> Filter<'a> {
                 filtered.push(peptide)
             }
         }
+        // We must have at least a single peptide...
+        if filtered.len() == 0 {
+            return None;
+        }
 
         protein.peptides = filtered;
 
         let spec = protein.peptides.len() as u16;
-
-        if spec == 0 {
-            return None;
-        }
-
         let seq = protein
             .peptides
             .iter()
@@ -205,6 +271,7 @@ impl<'a> Filter<'a> {
                         return None;
                     }
                 }
+                _ => {}
             }
         }
 
