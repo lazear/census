@@ -1,3 +1,13 @@
+//! This is an example of how to use the census crate to read in some sample
+//! data (not supplied, sorry.), parse, filter, and normalize the data to
+//! the ion intensities from channel 1. The normalized data is then written
+//! to a new output file
+//!
+//! Also demonstrated here is the ability to use the "serialization" feature
+//! which allows `Filter` objects to read or written from a file in JSON
+//! format.  
+//!
+//! This whole process should execute in ~250ms for a 25Mb file of raw data.
 use census::*;
 #[cfg(feature = "serialization")]
 use serde_json;
@@ -10,8 +20,15 @@ fn main() -> std::io::Result<()> {
 
     #[cfg(feature = "serialization")]
     let s = fs::read_to_string("./examples/filter.json")?;
+
     #[cfg(feature = "serialization")]
-    let filter = serde_json::from_str(&s).unwrap();
+    let filter = match serde_json::from_str(&s) {
+        Ok(f) => f,
+        Err(e) => {
+            println!("Error while parsing filter.json {:?}", e);
+            std::process::abort();
+        }
+    };
 
     #[cfg(not(feature = "serialization"))]
     let filter = Filter::default()
@@ -21,7 +38,7 @@ fn main() -> std::io::Result<()> {
         .add_peptide_filter(PeptideFilter::TotalIntensity(5000));
 
     let data = data.filter(&filter);
-    let mut output = fs::File::create("output.txt")?;
+    let mut output = fs::File::create("20190311_MRL_A_out.txt")?;
 
     writeln!(
         output,

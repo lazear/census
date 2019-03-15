@@ -5,7 +5,7 @@ mod dataset;
 mod filter;
 mod parser;
 mod protein;
-mod util;
+pub mod util;
 
 pub use dataset::Dataset;
 pub use filter::{Filter, PeptideFilter, ProteinFilter};

@@ -12,6 +12,12 @@ pub fn mean(slice: &[u32]) -> f64 {
     slice.iter().sum::<u32>() as f64 / slice.len() as f64
 }
 
+/// Calculate the mean value of a slice
+#[inline]
+pub fn meanf(slice: &[f64]) -> f64 {
+    slice.iter().sum::<f64>() as f64 / slice.len() as f64
+}
+
 /// Return the maximum value of a slice
 #[inline]
 pub fn max(slice: &[u32]) -> u32 {
@@ -27,6 +33,17 @@ pub fn stddev(slice: &[u32]) -> f64 {
     (slice
         .iter()
         .fold(0.0f64, |acc, x| acc + (*x as f64 - mean).powi(2))
+        / slice.len() as f64)
+        .sqrt()
+}
+
+/// Calculate the standard deviation (population) of a slice
+#[inline]
+pub fn stddevf(slice: &[f64]) -> f64 {
+    let mean = meanf(slice);
+    (slice
+        .iter()
+        .fold(0.0f64, |acc, x| acc + (*x - mean).powi(2))
         / slice.len() as f64)
         .sqrt()
 }

@@ -2,7 +2,7 @@
 
 A high-performance Rust library for parsing, filtering, and manipulating multiplexed isobaric proteomics data quantified using the Census algorithm.
 
-
+Our work uses the Census algoritm (as part of IP2) to quantify TMT (tandem mass tag) proteomics data from complex samples. A fast, 
 
 ### Citation for census algorithm:
 

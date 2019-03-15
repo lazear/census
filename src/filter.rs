@@ -6,24 +6,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 /// Protein-level filter
-#[cfg(feature = "serialization")]
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub enum ProteinFilter {
-    /// Pass through proteins that have spectral counts >= N
-    SpectralCounts(u16),
-    /// Pass through proteins that have sequence counts >= N
-    SequenceCounts(u16),
-    ExcludeReverse,
-}
-
-/// Protein-level filter
-#[cfg(not(feature = "serialization"))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub enum ProteinFilter {
-    /// Pass through proteins that have spectral counts >= N
+    /// Include only proteins that have spectral counts >= N
     SpectralCounts(u16),
-    /// Pass through proteins that have sequence counts >= N
+    /// Include only proteins that have sequence counts >= N
     SequenceCounts(u16),
+    /// Include only proteins that do not have "Reverse" in their
+    /// UniProt accession
     ExcludeReverse,
 }
 
@@ -35,83 +26,39 @@ pub enum ProteinFilter {
 ///
 /// Peptide can also be filtered based on whether they have 2 tryptic ends,
 /// or if they are unique.
-#[cfg(feature = "serialization")]
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub enum PeptideFilter<'a> {
-    /// Include only peptides that have a sequence matching the pattern
-    SequenceMatch(&'a str),
-    /// Exclude all peptides that have a sequence matching the pattern
-    SequenceExclude(&'a str),
-    /// Pass through peptides that have a total ion itensity >= N
-    TotalIntensity(u32),
-
-    /// ChannelCV(channels, N)
-    ///
-    /// Pass peptide if the coeff. of variance is < N between
-    /// the specified channels
-    ChannelCV(Vec<usize>, f64),
-
-    /// ChannelIntensity(channel, cutoff)
-    ///
-    /// Pass through peptides that have an ion intensity >= N
-    /// in the specified channel
-    ChannelIntensity(usize, u32),
-
-    /// Pass through tryptic peptides
-    Tryptic,
-    /// Include only unique peptides
-    Unique,
-}
-
-/// Peptide-level filter
-///
-/// Filter individual peptides within a protein based on sequence mactches,
-/// total intensities, coefficient of variance between channels, or intensity
-/// values on specified channels.
-///
-/// Peptide can also be filtered based on whether they have 2 tryptic ends,
-/// or if they are unique.
-#[cfg(not(feature = "serialization"))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum PeptideFilter<'a> {
     /// Include only peptides that have a sequence matching the pattern
     SequenceMatch(&'a str),
-    /// Exclude all peptides that have a sequence matching the pattern
+    /// Include only peptides that do NOT have a sequence matching the pattern
     SequenceExclude(&'a str),
-    /// Pass through peptides that have a total ion itensity >= N
+    /// Include only peptides that have a total ion itensity >= N
     TotalIntensity(u32),
 
     /// ChannelCV(channels, N)
     ///
-    /// Pass peptide if the coeff. of variance is < N between
+    /// Include only peptides where the coeff. of variance is < N between
     /// the specified channels
     ChannelCV(Vec<usize>, f64),
 
     /// ChannelIntensity(channel, cutoff)
     ///
-    /// Pass through peptides that have an ion intensity >= N
+    /// Include only peptides that have an ion intensity >= N
     /// in the specified channel
     ChannelIntensity(usize, u32),
 
-    /// Pass through tryptic peptides
+    /// Include only tryptic peptides
     Tryptic,
     /// Include only unique peptides
     Unique,
 }
 
 /// Provides filtering functionality on datasets and proteins
-#[cfg(not(feature = "serialization"))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Filter<'a> {
-    peptide_filters: Vec<PeptideFilter<'a>>,
-    protein_filters: Vec<ProteinFilter>,
-}
-
-/// Provides filtering functionality on datasets and proteins
-#[cfg(feature = "serialization")]
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct Filter<'a> {
-    #[serde(borrow)]
+    #[cfg_attr(feature = "serde", serde(borrow))]
     peptide_filters: Vec<PeptideFilter<'a>>,
     protein_filters: Vec<ProteinFilter>,
 }
