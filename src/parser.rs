@@ -62,9 +62,14 @@ impl<'s> Parser<'s> {
 
     fn parse_peptide(&mut self) -> Result<Peptide<'s>, Error> {
         let line = self.iter.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
-        let mut data = line.split_whitespace();
+        // Using split_whitespace obfuscates missing 'U' values, and messes up 
+        // parsing
+        let mut data = line.split('\t');
         assert_eq!(data.next(), Some("S"));
-        let unique: bool = data.next().ok_or_else(|| self.err(ErrorKind::EOF))? == "U";
+
+        let n = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
+        assert!(n.len() <= 1);
+        let unique: bool = n == "U";
         let sequence = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
 
         let mut values = Vec::with_capacity(self.channels as usize);
