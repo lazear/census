@@ -8,7 +8,7 @@
 //! format.  
 //!
 //! This whole process should execute in ~250ms for a 25Mb file of raw data.
-use census::*;
+use census_proteomics::*;
 #[cfg(feature = "serialization")]
 use serde_json;
 use std::fs;
@@ -16,7 +16,7 @@ use std::io::prelude::*;
 
 fn main() -> std::io::Result<()> {
     let file = fs::read_to_string("./examples/data.txt")?;
-    let data = census::read_census(&file).expect("Error parsing census file!");
+    let data = census_proteomics::read_census(&file).expect("Error parsing census file!");
 
     #[cfg(feature = "serialization")]
     let s = fs::read_to_string("./examples/filter.json")?;

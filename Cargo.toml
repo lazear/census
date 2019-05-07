@@ -1,8 +1,12 @@
 [package]
-name = "census"
+name = "census-proteomics"
 version = "0.1.2"
 authors = ["Michael Lazear <lazear@scripps.edu>"]
 edition = "2018"
+license = "MIT"
+description = "Rust library for working with proteomics data quantified by the Census algorithm"
+repository = "https://github.com/lazear/census.git"
+homepage = "https://github.com/lazear/census"
 
 [dependencies]
 serde = { version = "1.0", features=["derive"], optional = true }
