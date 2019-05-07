@@ -5,6 +5,7 @@ use super::*;
 
 use std::iter::Peekable;
 use std::str::Lines;
+use std::fmt;
 
 #[derive(PartialEq, PartialOrd, Debug)]
 pub enum ErrorKind {
@@ -22,6 +23,14 @@ pub struct Error {
     kind: ErrorKind,
     line: usize,
 }
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error parsing file at line {}: {:?}", self.line, self.kind)
+    }
+}
+
+impl std::error::Error for Error {}
 
 pub struct Parser<'s> {
     iter: Peekable<Lines<'s>>,
