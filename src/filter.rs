@@ -204,6 +204,9 @@ impl<'a> Filter<'a> {
             .collect::<HashSet<_>>()
             .len() as u16;
 
+        protein.spectral_count = spec;
+        protein.sequence_count = seq;
+
         // Second pass through protein filters, in case we no longer have
         // enough filtered peptides
         for filter in &self.protein_filters {

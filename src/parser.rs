@@ -3,9 +3,9 @@
 
 use super::*;
 
+use std::fmt;
 use std::iter::Peekable;
 use std::str::Lines;
-use std::fmt;
 
 #[derive(PartialEq, PartialOrd, Debug)]
 pub enum ErrorKind {
@@ -26,7 +26,11 @@ pub struct Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Error parsing file at line {}: {:?}", self.line, self.kind)
+        write!(
+            f,
+            "Error parsing file at line {}: {:?}",
+            self.line, self.kind
+        )
     }
 }
 
@@ -71,7 +75,7 @@ impl<'s> Parser<'s> {
 
     fn parse_peptide(&mut self) -> Result<Peptide<'s>, Error> {
         let line = self.iter.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
-        // Using split_whitespace obfuscates missing 'U' values, and messes up 
+        // Using split_whitespace obfuscates missing 'U' values, and messes up
         // parsing
         let mut data = line.split('\t');
         assert_eq!(data.next(), Some("S"));
