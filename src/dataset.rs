@@ -2,6 +2,7 @@
 use super::*;
 use std::collections::{HashMap, HashSet};
 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 /// Container for proteomics data read from a Census version file
 pub struct Dataset<'s> {
     /// TMT data for each protein in the dataset

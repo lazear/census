@@ -1,3 +1,4 @@
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, PartialOrd)]
 /// Protein-level TMT quantification data, as well as additional
 /// metadata about the protein that is output in the Census file
@@ -40,6 +41,7 @@ impl<'s> Protein<'s> {
     }
 }
 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, PartialOrd, Clone, Debug)]
 /// Peptide-level TMT quantification data
 pub struct Peptide<'s> {
