@@ -1,7 +1,7 @@
 #[cfg(feature = "serialization")]
-use serde::{Deserialize, Serialize};
+use serde::{Serialize};
 
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, PartialOrd)]
 /// Protein-level TMT quantification data, as well as additional
 /// metadata about the protein that is output in the Census file

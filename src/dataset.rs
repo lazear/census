@@ -4,7 +4,7 @@ use super::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 /// Container for proteomics data read from a Census version file
 pub struct Dataset<'s> {
     /// TMT data for each protein in the dataset
