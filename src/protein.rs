@@ -44,7 +44,7 @@ impl<'s> Protein<'s> {
     }
 }
 
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, PartialOrd, Clone, Debug)]
 /// Peptide-level TMT quantification data
 pub struct Peptide<'s> {
