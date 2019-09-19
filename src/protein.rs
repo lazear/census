@@ -1,3 +1,6 @@
+#[cfg(feature = "serialization")]
+use serde::{Deserialize, Serialize};
+
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, PartialOrd)]
 /// Protein-level TMT quantification data, as well as additional

@@ -1,5 +1,7 @@
 //! Collection of `Protein` objects representing a single dataset
 use super::*;
+#[cfg(feature = "serialization")]
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
