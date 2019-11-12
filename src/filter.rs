@@ -36,6 +36,10 @@ pub enum PeptideFilter<'a> {
     /// Include only peptides that have a total ion itensity >= N
     TotalIntensity(u32),
 
+    /// Include only peptides where the total intensity in a set of channels
+    /// >= N
+    TotalIntensityChannels(Vec<usize>, u32),
+
     /// ChannelCV(channels, N)
     ///
     /// Include only peptides where the coeff. of variance is < N between
@@ -182,6 +186,17 @@ impl<'a> Filter<'a> {
                             pass = false;
                         }
                     }
+                    PeptideFilter::TotalIntensityChannels(chan, cutoff) => {
+                        let mut sum = 0;
+                        for c in chan {
+                            if c - 1 < peptide.values.len() {
+                                sum += peptide.values[*c - 1];
+                            }
+                        }
+                        if sum < *cutoff {
+                            pass = false;
+                        }
+                    }
                 }
             }
 
@@ -226,5 +241,52 @@ impl<'a> Filter<'a> {
         }
 
         Some(protein)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn total_intensity_channels() {
+        let p1 = Peptide {
+            sequence: "aa",
+            values: vec![1, 2998, 5000, 84, 4738, 9384],
+            unique: true,
+        };
+        let p2 = Peptide {
+            sequence: "aaa",
+            values: vec![10000, 0, 433, 61346, 41, 5555],
+            unique: true,
+        };
+
+        let p3 = Peptide {
+            sequence: "aaaa",
+            values: vec![1, 2999, 0, 0, 0, 0],
+            unique: true,
+        };
+
+        let prot = Protein {
+            accession: "",
+            description: "",
+            spectral_count: 10,
+            sequence_count: 3,
+            sequence_coverage: 0.3,
+            molecular_weight: 10,
+            peptides: vec![p1.clone(), p2.clone(), p3.clone()],
+            channels: 6,
+        };
+
+        let mut fil = Filter {
+            peptide_filters: Vec::new(),
+            protein_filters: Vec::new(),
+        };
+
+        fil = fil.add_peptide_filter(PeptideFilter::TotalIntensityChannels(vec![1, 2], 3000));
+        let p = fil.filter_protein(prot).unwrap();
+        assert_eq!(p.peptides.len(), 2);
+        assert_eq!(p.sequence_count, 2);
+        assert_eq!(p.peptides, vec![p2.clone(), p3.clone()]);
     }
 }

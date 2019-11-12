@@ -1,5 +1,5 @@
 #[cfg(feature = "serialization")]
-use serde::{Serialize};
+use serde::Serialize;
 
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, PartialOrd)]
