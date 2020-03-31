@@ -1,15 +1,16 @@
 #[cfg(feature = "serialization")]
 use serde::Serialize;
+use std::borrow::Cow;
 
 #[cfg_attr(feature = "serde", derive(Serialize))]
-#[derive(PartialEq, PartialOrd)]
+#[derive(PartialEq, PartialOrd, Clone)]
 /// Protein-level TMT quantification data, as well as additional
 /// metadata about the protein that is output in the Census file
-pub struct Protein<'s> {
+pub struct Protein {
     /// Uniprot accession identifier
-    pub accession: &'s str,
+    pub accession: String,
     /// Long-form description
-    pub description: &'s str,
+    pub description: String,
     /// Number of spectral counts
     pub spectral_count: u16,
     /// Number of unique sequence counts
@@ -19,12 +20,12 @@ pub struct Protein<'s> {
     /// Molecular weight
     pub molecular_weight: u32,
     /// Raw signal intensity channels
-    pub peptides: Vec<Peptide<'s>>,
+    pub peptides: Vec<Peptide>,
 
     pub channels: u8,
 }
 
-impl<'s> Protein<'s> {
+impl Protein {
     /// Return the summed intensities for all peptides
     pub fn total(&self) -> Vec<u32> {
         let mut v = Vec::with_capacity(self.channels as usize);
@@ -47,16 +48,16 @@ impl<'s> Protein<'s> {
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, PartialOrd, Clone, Debug)]
 /// Peptide-level TMT quantification data
-pub struct Peptide<'s> {
+pub struct Peptide {
     /// Peptide sequence
-    pub sequence: &'s str,
+    pub sequence: String,
     /// Raw isobaric ion intensity values
     pub values: Vec<u32>,
     /// Is this a unique peptide?
     pub unique: bool,
 }
 
-impl<'s> Peptide<'s> {
+impl Peptide {
     /// Return a boolean indicating whether the peptide has 2 tryptic sites
     pub fn tryptic(&self) -> bool {
         let kdot = self.sequence.matches("K.").count();

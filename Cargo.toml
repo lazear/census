@@ -1,6 +1,6 @@
 [package]
 name = "census-proteomics"
-version = "0.1.8"
+version = "0.2"
 authors = ["Michael Lazear <lazear@scripps.edu>"]
 edition = "2018"
 license = "MIT"

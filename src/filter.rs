@@ -95,7 +95,7 @@ impl<'a> Filter<'a> {
     }
 
     /// Return a new `Dataset` that only contains filtered `Protein`'s
-    pub fn filter_dataset<'s>(&self, dataset: Dataset<'s>) -> Dataset<'s> {
+    pub fn filter_dataset(&self, dataset: Dataset) -> Dataset {
         Dataset {
             channels: dataset.channels,
             proteins: dataset
@@ -112,7 +112,7 @@ impl<'a> Filter<'a> {
     ///
     /// The peptides associated with the returned `Protein` object aree those
     /// that passed any given `PeptideFilter`s.
-    pub fn filter_protein<'s>(&self, mut protein: Protein<'s>) -> Option<Protein<'s>> {
+    pub fn filter_protein(&self, mut protein: Protein) -> Option<Protein> {
         // First run through any protein level filters
         for filter in &self.protein_filters {
             match filter {
@@ -215,7 +215,7 @@ impl<'a> Filter<'a> {
         let seq = protein
             .peptides
             .iter()
-            .map(|pep| pep.sequence)
+            .map(|pep| &pep.sequence)
             .collect::<HashSet<_>>()
             .len() as u16;
 
@@ -251,25 +251,25 @@ mod test {
     #[test]
     fn total_intensity_channels() {
         let p1 = Peptide {
-            sequence: "aa",
+            sequence: "aa".into(),
             values: vec![1, 2998, 5000, 84, 4738, 9384],
             unique: true,
         };
         let p2 = Peptide {
-            sequence: "aaa",
+            sequence: "aaa".into(),
             values: vec![10000, 0, 433, 61346, 41, 5555],
             unique: true,
         };
 
         let p3 = Peptide {
-            sequence: "aaaa",
+            sequence: "aaaa".into(),
             values: vec![1, 2999, 0, 0, 0, 0],
             unique: true,
         };
 
         let prot = Protein {
-            accession: "",
-            description: "",
+            accession: "".into(),
+            description: "".into(),
             spectral_count: 10,
             sequence_count: 3,
             sequence_coverage: 0.3,

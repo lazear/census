@@ -73,7 +73,7 @@ impl<'s> Parser<'s> {
         n
     }
 
-    fn parse_peptide(&mut self) -> Result<Peptide<'s>, Error> {
+    fn parse_peptide(&mut self) -> Result<Peptide, Error> {
         let line = self.iter.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
         // Using split_whitespace obfuscates missing 'U' values, and messes up
         // parsing
@@ -83,7 +83,7 @@ impl<'s> Parser<'s> {
         let n = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
         assert!(n.len() <= 1);
         let unique: bool = n == "U";
-        let sequence = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
+        let sequence = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?.into();
 
         let mut values = Vec::with_capacity(self.channels as usize);
 
@@ -104,11 +104,11 @@ impl<'s> Parser<'s> {
         })
     }
 
-    fn parse_protein(&mut self) -> Result<Protein<'s>, Error> {
+    fn parse_protein(&mut self) -> Result<Protein, Error> {
         let line = self.iter.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
         let mut data = line.split('\t');
         assert_eq!(data.next(), Some("P"));
-        let accession = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
+        let accession = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?.into();
         let spectral_count = data
             .next()
             .ok_or_else(|| self.err(ErrorKind::EOF))?
@@ -131,10 +131,11 @@ impl<'s> Parser<'s> {
             .parse::<u32>()
             .map_err(|_| self.err(ErrorKind::Conversion))?;
 
-        let mut description = "";
-        for n in data {
-            description = n;
-        }
+        // let mut description = String::new();
+        // for n in data {
+        //     description = n.into();
+        // }
+        let description = data.last().ok_or_else(|| self.err(ErrorKind::EOF))?.into();
 
         let mut peptides = Vec::new();
         while let Some(next) = self.iter.peek() {
@@ -172,7 +173,7 @@ impl<'s> Parser<'s> {
         None
     }
 
-    pub fn parse(mut self) -> Result<Dataset<'s>, Error> {
+    pub fn parse(mut self) -> Result<Dataset, Error> {
         let mut data = Vec::new();
 
         while let Some(line) = self.peek() {
