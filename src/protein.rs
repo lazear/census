@@ -1,6 +1,5 @@
 #[cfg(feature = "serialization")]
 use serde::Serialize;
-use std::borrow::Cow;
 
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, PartialOrd, Clone)]
@@ -55,6 +54,8 @@ pub struct Peptide {
     pub values: Vec<u32>,
     /// Is this a unique peptide?
     pub unique: bool,
+
+    pub scan: usize,
 }
 
 impl Peptide {

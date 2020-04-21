@@ -97,10 +97,19 @@ impl<'s> Parser<'s> {
             let _ = data.next().ok_or_else(|| self.err(ErrorKind::EOF))?;
             values.push(mz);
         }
+
+        let scan = data
+            .skip(5)
+            .next()
+            .unwrap_or("")
+            .parse::<usize>()
+            .unwrap_or(0);
+
         Ok(Peptide {
             sequence,
             unique,
             values,
+            scan,
         })
     }
 

@@ -254,17 +254,20 @@ mod test {
             sequence: "aa".into(),
             values: vec![1, 2998, 5000, 84, 4738, 9384],
             unique: true,
+            scan: 0,
         };
         let p2 = Peptide {
             sequence: "aaa".into(),
             values: vec![10000, 0, 433, 61346, 41, 5555],
             unique: true,
+            scan: 0,
         };
 
         let p3 = Peptide {
             sequence: "aaaa".into(),
             values: vec![1, 2999, 0, 0, 0, 0],
             unique: true,
+            scan: 0,
         };
 
         let prot = Protein {
