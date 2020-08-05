@@ -52,6 +52,9 @@ pub enum PeptideFilter<'a> {
     /// in the specified channel
     ChannelIntensity(usize, u32),
 
+    /// TMT purity
+    Purity(f32),
+
     /// Include only tryptic peptides
     Tryptic,
     /// Include only unique peptides
@@ -167,6 +170,11 @@ impl<'a> Filter<'a> {
                             pass = false;
                         }
                     }
+                    PeptideFilter::Purity(cutoff) => {
+                        if peptide.purity < *cutoff {
+                            pass = false
+                        }
+                    }
                     PeptideFilter::ChannelCV(channels, cutoff) => {
                         let mut v = Vec::new();
                         for chan in channels.iter() {
@@ -255,12 +263,14 @@ mod test {
             values: vec![1, 2998, 5000, 84, 4738, 9384],
             unique: true,
             scan: 0,
+            purity: 1.0,
         };
         let p2 = Peptide {
             sequence: "aaa".into(),
             values: vec![10000, 0, 433, 61346, 41, 5555],
             unique: true,
             scan: 0,
+            purity: 1.0,
         };
 
         let p3 = Peptide {
@@ -268,6 +278,7 @@ mod test {
             values: vec![1, 2999, 0, 0, 0, 0],
             unique: true,
             scan: 0,
+            purity: 1.0,
         };
 
         let prot = Protein {

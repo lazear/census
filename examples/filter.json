@@ -26,6 +26,9 @@
         {
             "TotalIntensity": 5000
         },
+        {
+            "Purity": 0.9
+        },
         "Unique",
         "Tryptic"
     ],

@@ -55,6 +55,8 @@ pub struct Peptide {
     /// Is this a unique peptide?
     pub unique: bool,
 
+    pub purity: f32,
+
     pub scan: usize,
 }
 

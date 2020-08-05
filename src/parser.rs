@@ -98,8 +98,11 @@ impl<'s> Parser<'s> {
             values.push(mz);
         }
 
+        let _ = data.next();
+        let purity = data.next().unwrap_or("1.0").parse::<f32>().unwrap_or(1.0);
+
         let scan = data
-            .skip(5)
+            .skip(3)
             .next()
             .unwrap_or("")
             .parse::<usize>()
@@ -110,6 +113,7 @@ impl<'s> Parser<'s> {
             unique,
             values,
             scan,
+            purity,
         })
     }
 
