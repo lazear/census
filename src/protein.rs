@@ -2,7 +2,7 @@
 use serde::Serialize;
 
 #[cfg_attr(feature = "serde", derive(Serialize))]
-#[derive(PartialEq, PartialOrd, Clone)]
+#[derive(PartialEq, PartialOrd, Clone, Default)]
 /// Protein-level TMT quantification data, as well as additional
 /// metadata about the protein that is output in the Census file
 pub struct Protein {
@@ -45,7 +45,7 @@ impl Protein {
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize))]
-#[derive(PartialEq, PartialOrd, Clone, Debug)]
+#[derive(PartialEq, PartialOrd, Clone, Debug, Default)]
 /// Peptide-level TMT quantification data
 pub struct Peptide {
     /// Peptide sequence
