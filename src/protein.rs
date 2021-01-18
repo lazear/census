@@ -63,9 +63,27 @@ pub struct Peptide {
 impl Peptide {
     /// Return a boolean indicating whether the peptide has 2 tryptic sites
     pub fn tryptic(&self) -> bool {
-        let kdot = self.sequence.matches("K.").count();
-        let rdot = self.sequence.matches("R.").count();
-        kdot + rdot == 2
+        let cterm = self.sequence.ends_with('-');
+        let front = self.sequence.starts_with(|c| match c {
+            'K' | 'R' | '-' => true,
+            _ => false,
+        });
+        let end = self
+            .sequence
+            .split('.')
+            .skip(1)
+            .next()
+            .map(|s| {
+                s.ends_with(|c| match c {
+                    'K' | 'R' => true,
+                    _ => cterm,
+                })
+            })
+            .unwrap_or(false);
+        front && end
+        // let kdot = self.sequence.matches("K.").count();
+        // let rdot = self.sequence.matches("R.").count();
+        // kdot + rdot == 2
     }
 
     /// Return a vector of normalized ratios, where the signal intensity
@@ -83,5 +101,24 @@ impl Peptide {
     /// May panic if A or B exceed the length of the vector
     pub fn swap_channels(&mut self, a: usize, b: usize) {
         self.values.swap(a, b)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn gen_peptide(sequence: &str) -> Peptide {
+        Peptide {
+            sequence: sequence.into(),
+            ..Peptide::default()
+        }
+    }
+    #[test]
+    fn test_trypic() {
+        assert!(gen_peptide("-.KMDKDK.-").tryptic());
+        assert!(!gen_peptide("S.KMDKDK.-").tryptic());
+        assert!(gen_peptide("R.KMDKDK.-").tryptic());
+        assert!(!gen_peptide("K.KMDKDT.A").tryptic());
     }
 }
