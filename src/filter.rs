@@ -97,14 +97,21 @@ impl<'a> Filter<'a> {
         self
     }
 
+    pub fn tryptic_regex() -> regex::Regex {
+        regex::RegexBuilder::new(r#"(R|K|-)\..*((R|K)\..|.-)"#)
+            .build()
+            .unwrap()
+    }
+
     /// Return a new `Dataset` that only contains filtered `Protein`'s
     pub fn filter_dataset(&self, dataset: Dataset) -> Dataset {
+        let reg = Self::tryptic_regex();
         Dataset {
             channels: dataset.channels,
             proteins: dataset
                 .proteins
                 .into_iter()
-                .filter_map(|prot| self.filter_protein(prot))
+                .filter_map(|prot| self.filter_protein(prot, &reg))
                 .collect(),
         }
     }
@@ -115,7 +122,11 @@ impl<'a> Filter<'a> {
     ///
     /// The peptides associated with the returned `Protein` object aree those
     /// that passed any given `PeptideFilter`s.
-    pub fn filter_protein(&self, mut protein: Protein) -> Option<Protein> {
+    pub fn filter_protein(
+        &self,
+        mut protein: Protein,
+        tryptic_regex: &regex::Regex,
+    ) -> Option<Protein> {
         // First run through any protein level filters
         for filter in &self.protein_filters {
             match filter {
@@ -148,31 +159,37 @@ impl<'a> Filter<'a> {
                     PeptideFilter::SequenceExclude(pat) => {
                         if peptide.sequence.contains(pat) {
                             pass = false;
+                            break;
                         }
                     }
                     PeptideFilter::SequenceMatch(pat) => {
                         if !peptide.sequence.contains(pat) {
                             pass = false;
+                            break;
                         }
                     }
                     PeptideFilter::TotalIntensity(n) => {
                         if peptide.values.iter().sum::<u32>() < *n {
                             pass = false;
+                            break;
                         }
                     }
                     PeptideFilter::Tryptic => {
-                        if !peptide.tryptic() {
+                        if !tryptic_regex.is_match(&peptide.sequence) {
                             pass = false;
+                            break;
                         }
                     }
                     PeptideFilter::Unique => {
                         if !peptide.unique {
                             pass = false;
+                            break;
                         }
                     }
                     PeptideFilter::Purity(cutoff) => {
                         if peptide.purity < *cutoff {
-                            pass = false
+                            pass = false;
+                            break;
                         }
                     }
                     PeptideFilter::ChannelCV(channels, cutoff) => {
@@ -184,6 +201,7 @@ impl<'a> Filter<'a> {
                         }
                         if util::cv(&v) >= *cutoff {
                             pass = false;
+                            break;
                         }
                     }
                     PeptideFilter::ChannelIntensity(channel, cutoff) => {
@@ -192,6 +210,7 @@ impl<'a> Filter<'a> {
                             && peptide.values[channel - 1] < *cutoff
                         {
                             pass = false;
+                            break;
                         }
                     }
                     PeptideFilter::TotalIntensityChannels(chan, cutoff) => {
@@ -203,6 +222,7 @@ impl<'a> Filter<'a> {
                         }
                         if sum < *cutoff {
                             pass = false;
+                            break;
                         }
                     }
                 }
@@ -298,7 +318,7 @@ mod test {
         };
 
         fil = fil.add_peptide_filter(PeptideFilter::TotalIntensityChannels(vec![1, 2], 3000));
-        let p = fil.filter_protein(prot).unwrap();
+        let p = fil.filter_protein(prot, &Filter::tryptic_regex()).unwrap();
         assert_eq!(p.peptides.len(), 2);
         assert_eq!(p.sequence_count, 2);
         assert_eq!(p.peptides, vec![p2.clone(), p3.clone()]);

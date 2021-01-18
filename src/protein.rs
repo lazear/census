@@ -118,7 +118,7 @@ mod test {
     fn test_trypic() {
         assert!(gen_peptide("-.KMDKDK.-").tryptic());
         assert!(!gen_peptide("S.KMDKDK.-").tryptic());
-        assert!(gen_peptide("R.KMDKDK.-").tryptic());
+        assert!(gen_peptide("R.TLDGFK*K.F").tryptic());
         assert!(!gen_peptide("K.KMDKDT.A").tryptic());
     }
 }
